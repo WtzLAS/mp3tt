@@ -98,8 +98,7 @@ enum TmC {
 
 type Env = Vector[NeV]
 
-case class ClosureV(env: Env, t: TmV)
-case class ClosureC(env: Env, t: TmC)
+case class Closure[T](env: Env, t: T)
 
 type NeTyV = NeV
 type NeTyC = NeC
@@ -107,7 +106,7 @@ type NeTyC = NeC
 enum NeV {
   case Uv(i: Int)
 
-  case Sigma(x: Name, a: NeV, b: ClosureV)
+  case Sigma(x: Name, a: NeV, b: Closure[TmV])
   case Pair(v: NeV, w: NeV)
 
   case Sum(a: NeTyV, b: NeTyV)
@@ -126,8 +125,8 @@ enum NeV {
 enum NeC {
   case Uc(i: Int)
 
-  case Pi(x: Name, a: NeTyV, b: ClosureC)
-  case Lam(x: Name, a: NeTyV, t: ClosureC)
+  case Pi(x: Name, a: NeTyV, b: Closure[TmC])
+  case Lam(x: Name, a: NeTyV, t: Closure[TmC])
   case App(t: NeC, v: NeV)
 
   case F(a: NeTyV)
@@ -135,8 +134,8 @@ enum NeC {
 
   case Force(a: NeTyV)
 
-  case Let(x: Name, a: NeTyV, t: NeC, u: ClosureC)
-  case DLet(x: Name, a: NeTyV, t: NeC, u: ClosureC)
+  case Let(x: Name, a: NeTyV, t: NeC, u: Closure[TmC])
+  case DLet(x: Name, a: NeTyV, t: NeC, u: Closure[TmC])
 
   case RecSigma(v: NeV, x: NeTyC, t: NeC)
   case RecSum(v: NeV, x: NeTyC, t1: NeC, t2: NeC)
