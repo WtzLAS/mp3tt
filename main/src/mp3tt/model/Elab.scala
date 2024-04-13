@@ -43,12 +43,15 @@ def eval(env: Env, term: TmC): NeC = term match
   case TmC.RecSigma(v, x, t) =>
     eval(env, v) match
       case NeV.Pair(v, w) =>
-        eval(env, TmC.App(TmC.App(t, quote(env.lvl, v)), quote(env.lvl, w)))
+        eval(
+          env,
+          TmC.App(TmC.App(t, quote(env.length, v)), quote(env.length, w))
+        )
       case v => NeC.RecSigma(v, eval(env, x), eval(env, t))
   case TmC.RecSum(v, x, t1, t2) =>
     eval(env, v) match
-      case NeV.Inl(v) => eval(env, TmC.App(t1, quote(env.lvl, v)))
-      case NeV.Inr(w) => eval(env, TmC.App(t2, quote(env.lvl, w)))
+      case NeV.Inl(v) => eval(env, TmC.App(t1, quote(env.length, v)))
+      case NeV.Inr(w) => eval(env, TmC.App(t2, quote(env.length, w)))
       case v => NeC.RecSum(v, eval(env, x), eval(env, t1), eval(env, t2))
   case TmC.RecEq(v, x, t) =>
     eval(env, v) match
@@ -58,7 +61,7 @@ def eval(env: Env, term: TmC): NeC = term match
 def quote(l: Lvl, v: NeV): TmV = v match
   case NeV.Uv(i) => TmV.Uv(i)
   case NeV.Sigma(x, a, b) =>
-    TmV.Sigma(x, quote(l, a), quote(l.extended, b $$ NeV.Var(l)))
+    TmV.Sigma(x, quote(l, a), quote(l + 1, b $$ NeV.Var(l)))
   case NeV.Pair(v, w)  => TmV.Pair(quote(l, v), quote(l, w))
   case NeV.Sum(a, b)   => TmV.Sum(quote(l, a), quote(l, b))
   case NeV.Inl(v)      => TmV.Inl(quote(l, v))
@@ -72,19 +75,23 @@ def quote(l: Lvl, v: NeV): TmV = v match
 def quote(l: Lvl, c: NeC): TmC = c match
   case NeC.Uc(i) => TmC.Uc(i)
   case NeC.Pi(x, a, b) =>
-    TmC.Pi(x, quote(l, a), quote(l.extended, b $$ NeV.Var(l)))
+    TmC.Pi(x, quote(l, a), quote(l + 1, b $$ NeV.Var(l)))
   case NeC.Lam(x, a, t) =>
-    TmC.Lam(x, quote(l, a), quote(l.extended, t $$ NeV.Var(l)))
+    TmC.Lam(x, quote(l, a), quote(l + 1, t $$ NeV.Var(l)))
   case NeC.App(t, v) => TmC.App(quote(l, t), quote(l, v))
   case NeC.F(a)      => TmC.F(quote(l, a))
   case NeC.Return(v) => TmC.Return(quote(l, v))
   case NeC.Force(a)  => TmC.Force(quote(l, a))
   case NeC.Let(x, a, t, u) =>
-    TmC.Let(x, quote(l, a), quote(l, t), quote(l.extended, u $$ NeV.Var(l)))
+    TmC.Let(x, quote(l, a), quote(l, t), quote(l + 1, u $$ NeV.Var(l)))
   case NeC.DLet(x, a, t, u) =>
-    TmC.DLet(x, quote(l, a), quote(l, t), quote(l.extended, u $$ NeV.Var(l)))
+    TmC.DLet(x, quote(l, a), quote(l, t), quote(l + 1, u $$ NeV.Var(l)))
   case NeC.RecSigma(v, x, t) =>
     TmC.RecSigma(quote(l, v), quote(l, x), quote(l, t))
   case NeC.RecSum(v, x, t1, t2) =>
     TmC.RecSum(quote(l, v), quote(l, x), quote(l, t1), quote(l, t2))
   case NeC.RecEq(v, x, t) => TmC.RecEq(quote(l, v), quote(l, x), quote(l, t))
+
+def nf(env: Env, t: TmV): TmV = quote(env.length, eval(env, t))
+
+def nf(env: Env, t: TmC): TmC = quote(env.length, eval(env, t))
