@@ -50,13 +50,16 @@ enum Raw {
   case Let(x: Name, a: Raw, t: Raw, u: Raw)
   // return v
   case Return(v: Raw)
-  // recSignma v X t
+  // recSigma v X t
   case RecSigma(v: Raw, x: Raw, t: Raw)
   // recSum v X t1 t2
   case RecSum(v: Raw, x: Raw, t1: Raw, t2: Raw)
   // recEq v X t
   case RecEq(v: Raw, x: Raw, t: Raw)
 }
+
+type Ty = TyV | TyC
+type Tm = TmV | TmC
 
 type TyV = TmV
 type TyC = TmC
@@ -104,6 +107,9 @@ type Env = Vector[NeV]
 
 case class Closure[T](env: Env, t: T)
 
+type NeTy = NeTyV | NeTyC
+type Ne = NeV | NeC
+
 type NeTyV = NeV
 type NeTyC = NeC
 
@@ -145,3 +151,4 @@ enum NeC {
   case RecSum(v: NeV, x: NeTyC, t1: NeC, t2: NeC)
   case RecEq(v: NeV, x: NeTyC, t: NeC)
 }
+

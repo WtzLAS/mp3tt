@@ -94,7 +94,7 @@ def nf(env: Env, t: TmV): TmV = quote(env.length, eval(env, t))
 
 def nf(env: Env, t: TmC): TmC = quote(env.length, eval(env, t))
 
-def conv(l: Lvl, t: NeV | NeC, u: NeV | NeC): Boolean = (t, u) match
+def conv(l: Lvl, t: Ne, u: Ne): Boolean = (t, u) match
   case (NeV.Uv(it), NeV.Uv(iu)) => it == iu
   case (NeV.Sigma(_, at, bt), NeV.Sigma(_, au, bu)) =>
     conv(l, at, au) && conv(l + 1, bt $$ NeV.Var(l), bu $$ NeV.Var(l))
