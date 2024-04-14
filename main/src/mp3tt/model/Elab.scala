@@ -1,7 +1,5 @@
 package mp3tt.model
 
-import debruijn.*
-
 extension (c: Closure[TmV]) infix def $$(v: NeV) = eval(v +: c.env, c.t)
 extension (c: Closure[TmC]) infix def $$(v: NeV) = eval(v +: c.env, c.t)
 
@@ -95,3 +93,46 @@ def quote(l: Lvl, c: NeC): TmC = c match
 def nf(env: Env, t: TmV): TmV = quote(env.length, eval(env, t))
 
 def nf(env: Env, t: TmC): TmC = quote(env.length, eval(env, t))
+
+def conv(l: Lvl, t: NeV | NeC, u: NeV | NeC): Boolean = (t, u) match
+  case (NeV.Uv(it), NeV.Uv(iu)) => it == iu
+  case (NeV.Sigma(_, at, bt), NeV.Sigma(_, au, bu)) =>
+    conv(l, at, au) && conv(l + 1, bt $$ NeV.Var(l), bu $$ NeV.Var(l))
+  case (NeV.Pair(vt, wt), NeV.Pair(vu, wu)) =>
+    conv(l, vt, vu) && conv(l, wt, wu)
+  case (NeV.Sum(at, bt), NeV.Sum(au, bu)) =>
+    conv(l, at, au) && conv(l, bt, bu)
+  case (NeV.Inl(vt), NeV.Inl(vu)) => conv(l, vt, vu)
+  case (NeV.Inr(wt), NeV.Inr(wu)) => conv(l, wt, wu)
+  case (NeV.Eq(at, vt, wt), NeV.Eq(au, vu, wu)) =>
+    conv(l, at, au) && conv(l, vt, vu) && conv(l, wt, wu)
+  case (NeV.Refl, NeV.Refl)           => true
+  case (NeV.U(xt), NeV.U(xu))         => conv(l, xt, xu)
+  case (NeV.Thunk(tt), NeV.Thunk(tu)) => conv(l, tt, tu)
+  case (NeV.Var(xt), NeV.Var(xu))     => xt == xu
+
+  case (NeC.Uc(it), NeC.Uc(iu)) => it == iu
+  case (NeC.Pi(_, at, bt), NeC.Pi(_, au, bu)) =>
+    conv(l, at, au) && conv(l + 1, bt $$ NeV.Var(l), bu $$ NeV.Var(l))
+  case (NeC.Lam(_, at, tt), NeC.Lam(_, au, tu)) =>
+    conv(l, at, au) && conv(l + 1, tt $$ NeV.Var(l), tu $$ NeV.Var(l))
+  case (NeC.App(tt, vt), NeC.App(tu, vu)) =>
+    conv(l, tt, tu) && conv(l, vt, vu)
+  case (NeC.F(at), NeC.F(au))           => conv(l, at, au)
+  case (NeC.Return(vt), NeC.Return(vu)) => conv(l, vt, vu)
+  case (NeC.Force(at), NeC.Force(au))   => conv(l, at, au)
+  case (NeC.Let(_, at, tt, ut), NeC.Let(_, au, tu, uu)) =>
+    conv(l, at, au) && conv(l, tt, tu) && conv(
+      l + 1,
+      ut $$ NeV.Var(l),
+      uu $$ NeV.Var(l)
+    )
+  case (NeC.DLet(_, at, tt, ut), NeC.DLet(_, au, tu, uu)) =>
+    conv(l, at, au) && conv(l, tt, tu) && conv(
+      l + 1,
+      ut $$ NeV.Var(l),
+      uu $$ NeV.Var(l)
+    )
+  case (NeC.RecSigma(vt, xt, tt), NeC.RecSigma(vu, xu, tu)) =>
+    conv(l, vt, vu) && conv(l, xt, xu) && conv(l, tt, tu)
+  case _ => false

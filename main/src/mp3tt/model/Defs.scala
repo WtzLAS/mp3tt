@@ -1,6 +1,10 @@
 package mp3tt.model
 
-import debruijn.*
+type Idx = Int
+
+type Lvl = Int
+
+extension (x: Lvl) def toIdx(l: Lvl): Idx = l - x - 1
 
 type Name = String
 
