@@ -11,7 +11,7 @@ object ElabTests extends TestSuite {
     }
 
     test("conv1") {
-      assert(conv(0, TmV.Uv(1), TmV.Uv(1)))
+      assert(conv(0, NeV.Uv(1), NeV.Uv(1)))
     }
   }
 }
