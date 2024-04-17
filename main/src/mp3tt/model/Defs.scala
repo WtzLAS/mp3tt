@@ -152,3 +152,16 @@ enum NeC {
   case RecEq(v: NeV, x: NeTyC, t: NeC)
 }
 
+case class Ctx(env: Env, types: Vector[(Name, NeTyV)], l: Lvl) {
+  def bind(x: Name, a: NeTyV) =
+    Ctx(NeV.Var(l) +: env, (x, a) +: types, l + 1)
+  def define(x: Name, t: NeV, a: NeTyV) =
+    Ctx(t +: env, (x, a) +: types, l + 1)
+  def find() = {}
+}
+
+object Ctx {
+  def empty = Ctx(Vector.empty, Vector.empty, 0)
+}
+
+type M[A] = Either[TyCkErr, A]
